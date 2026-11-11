@@ -4,7 +4,7 @@ import { Barcode } from '@/components/Barcode';
 import { MailLink } from '@/components/MailLink';
 import { FitLine, useFontFit } from '@/lib/kinetic';
 import { caracasDateTime } from '@/lib/time';
-import { LangSwitch, useSite } from '@/lib/i18n';
+import { LangSwitch, LangToggle, useSite } from '@/lib/i18n';
 
 /** La barra es el lector: su borde es un código que se ilumina al bajar y un bloque marca la sección. */
 export function Register({ repoCount, sectionsReady }: { repoCount: number; sectionsReady: boolean }) {
@@ -76,10 +76,13 @@ export function Register({ repoCount, sectionsReady }: { repoCount: number; sect
   return (
     <header className={`fixed top-0 inset-x-0 z-50 text-cream font-mono transition-colors duration-300 ${solid ? 'bg-ink' : 'bg-transparent'}`}>
       <div className="h-12 grid grid-cols-[auto_1fr] lg:grid-cols-[1fr_auto_1fr] items-stretch pl-4 sm:pl-6 pr-1 sm:pr-3 lg:pr-0">
+        <div className="flex items-stretch">
         <a href="#inicio" aria-label={`${site.identity.name}, ${site.ui.homeLabel}`} className="group flex items-center gap-2.5">
           <Barcode value="JC" className="w-8 h-5 text-cream hidden sm:flex" />
           <span className="kin text-xl leading-none [--w:66] group-hover:[--w:112]">{site.identity.name}</span>
         </a>
+        <LangToggle className="ml-1 lg:hidden" />
+        </div>
 
         <nav ref={nav} aria-label={site.ui.navLabel} className="relative flex items-stretch justify-end lg:justify-center">
           <span ref={marker} aria-hidden="true" className="absolute inset-y-0 left-0 bg-wine opacity-0 transition-[transform,width,opacity] duration-300 ease-out" />
@@ -127,7 +130,6 @@ export function Hero({ repoCount }: { repoCount: number }) {
       <div className="px-4 sm:px-6">
         <div className="flex justify-between font-mono text-[10px] sm:text-[11px] tracking-wider pb-3">
           <span>{site.role.toUpperCase()}</span>
-          <LangSwitch className="lg:hidden -my-1" />
           <span>{site.brand.location.toUpperCase()}</span>
         </div>
         <FitLine text={site.identity.name} base={60} peak={22} fillHeight={window.innerWidth < 1024 ? 0.4 : 0.58} />

@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { m, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, MessageCircle } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
-import { MailLink } from '@/components/MailLink';
+import { MailLink, WhatsAppLink } from '@/components/MailLink';
 import { GithubIcon } from '@/components/Icons';
 import { encode39 } from '@/lib/barcode';
 import { isLite } from '@/lib/device';
@@ -297,7 +297,10 @@ export function Contact() {
         <h2><FitLine text={site.ui.contact.title} base={64} peak={26} /></h2>
         <div className="mt-8 grid lg:grid-cols-2 gap-8 items-end">
           <p className="text-[clamp(1.75rem,4vw,3.75rem)] leading-[1.02] italic">{site.ui.contact.text}</p>
-          <div className="grid sm:grid-cols-2 gap-2 font-mono text-xs font-bold tracking-wider">
+          <div className="grid sm:grid-cols-3 gap-2 font-mono text-xs font-bold tracking-wider">
+            <WhatsAppLink message={site.ui.whatsappMessage} className="group flex items-center justify-between bg-cream text-ink hover:bg-ink hover:text-cream px-5 py-5 transition-colors">
+              <span className="flex items-center gap-2.5"><MessageCircle className="w-4 h-4" />WHATSAPP</span><ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </WhatsAppLink>
             <MailLink className="group flex items-center justify-between bg-ink text-cream hover:bg-wine-deep px-5 py-5 transition-colors">
               {site.ui.write}<ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </MailLink>

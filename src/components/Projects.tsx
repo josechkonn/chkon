@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
-import { ArrowUpRight, Lock, Plus, X } from 'lucide-react';
+import { ArrowUpRight, Lock, Maximize2, Plus, X } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
 import { GithubIcon } from '@/components/Icons';
 import { encode39 } from '@/lib/barcode';
@@ -55,6 +55,43 @@ function ScanImage({ src, video, alt, code, className = '' }: { src: string; vid
   );
 }
 
+/** Imagen o video completo en un diálogo nativo: atrapa el foco y cierra con Esc por sí solo. */
+function Lightbox({ src, video, alt, closeLabel, onClose }: { src: string; video?: string; alt: string; closeLabel: string; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (!element.open) element.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      if (element.open) element.close();
+    };
+  }, []);
+
+  const closeOnBackdrop = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  return (
+    <dialog ref={dialog} aria-label={alt} onClose={onClose} onClick={closeOnBackdrop} className="fixed inset-0 m-0 p-0 w-screen h-[100dvh] max-w-none max-h-none bg-ink/95 text-cream backdrop:bg-ink/95">
+      <div onClick={closeOnBackdrop} className="w-full h-full flex items-center justify-center p-3 pt-16 sm:p-10 sm:pt-16">
+        <m.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28, ease: EASE_OUT }} className="max-w-full max-h-full flex">
+          {video ? (
+            <video src={video} poster={src} aria-label={alt} controls autoPlay muted loop playsInline className="max-w-full max-h-[calc(100dvh-5.5rem)] object-contain" />
+          ) : (
+            <img src={src} alt={alt} className="max-w-full max-h-[calc(100dvh-5.5rem)] object-contain" />
+          )}
+        </m.div>
+      </div>
+      <button type="button" onClick={onClose} aria-label={closeLabel} className="absolute top-3 right-3 sm:top-4 sm:right-5 w-11 h-11 flex items-center justify-center bg-wine hover:bg-wine-deep border border-cream/50 transition-colors">
+        <X className="w-5 h-5" />
+      </button>
+    </dialog>
+  );
+}
+
 function Words({ text }: { text: string }) {
   return (
     <>
@@ -95,6 +132,7 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
   const rowRef = useRef<HTMLLIElement>(null);
   const [inView, setInView] = useState(false);
   const [armed, setArmed] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     if (!open || !rowRef.current) {
@@ -137,6 +175,8 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
         <Plus className={`w-5 h-5 justify-self-end transition-transform duration-500 ${open ? 'rotate-[135deg]' : ''}`} />
       </button>
 
+      {zoomed && <Lightbox src={item.image} video={item.video} alt={`${ui.capture} ${item.title}`} closeLabel={ui.closeLabel} onClose={() => setZoomed(false)} />}
+
       <AnimatePresence>
         {open && inView && (
           <m.button key="close" type="button" onClick={close} aria-label={`${ui.closeLabel} ${item.title}`}
@@ -153,11 +193,16 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
             <m.div exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
               <div className="relative">
                 <ScanImage src={item.image} video={item.video} alt={`${ui.capture} ${item.title}`} code={item.sku} className="aspect-[3/2] lg:aspect-[5/2]" />
+                <button type="button" onClick={() => setZoomed(true)} aria-label={`${ui.viewFull}: ${item.title}`} className="group/zoom absolute inset-0 cursor-zoom-in">
+                  <span className="absolute top-4 left-4 sm:top-7 sm:left-7 z-10 flex items-center gap-2 bg-ink/85 group-hover/zoom:bg-wine border border-cream/50 px-3 py-2 font-mono text-[10px] sm:text-xs font-bold tracking-wider transition-colors">
+                    <Maximize2 className="w-3.5 h-3.5" />{ui.viewFull}
+                  </span>
+                </button>
                 <m.div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent pointer-events-none" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.7 }} />
-                <m.div className="absolute top-4 right-4 sm:top-7 sm:right-7" initial={{ opacity: 0, scale: 2.2, rotate: -16 }} animate={{ opacity: 1, scale: 1, rotate: -6 }} transition={{ duration: 0.24, delay: 1, ease: [0.55, 0, 1, 0.45] }}>
+                <m.div className="absolute top-4 right-4 sm:top-7 sm:right-7 pointer-events-none" initial={{ opacity: 0, scale: 2.2, rotate: -16 }} animate={{ opacity: 1, scale: 1, rotate: -6 }} transition={{ duration: 0.24, delay: 1, ease: [0.55, 0, 1, 0.45] }}>
                   <div className="border-[3px] border-cream px-3 py-1.5 font-mono text-[10px] sm:text-xs font-bold tracking-wider stamp-wear">{item.discipline.toUpperCase()}</div>
                 </m.div>
-                <p className="absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-7 italic text-[clamp(2.3rem,7.2vw,7.5rem)] leading-[0.98] max-w-[85%]"><Words text={item.hook} /></p>
+                <p className="pointer-events-none absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-7 italic text-[clamp(2.3rem,7.2vw,7.5rem)] leading-[0.98] max-w-[85%]"><Words text={item.hook} /></p>
               </div>
 
               <div className="px-4 sm:px-6 pt-7 pb-9 grid lg:grid-cols-12 gap-x-10 gap-y-7">

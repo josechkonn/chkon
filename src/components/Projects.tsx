@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { ArrowUpRight, Lock, Maximize2, Plus, X } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
 import { GithubIcon } from '@/components/Icons';
-import { encode39 } from '@/lib/barcode';
 import { isLite, prefersReducedMotion } from '@/lib/device';
 import { FitLine } from '@/lib/kinetic';
 import { safeUrl, timeAgo, type GithubData, type Repo } from '@/lib/github';
@@ -15,42 +14,24 @@ type Item = Content['featured'][number] & { data?: Repo };
 const GRID = 'grid grid-cols-[5rem_1fr_auto] lg:grid-cols-[2.5rem_11rem_1fr_minmax(0,21rem)_8.5rem_2rem] items-center gap-x-3 lg:gap-x-5';
 
 const NAV_HEIGHT = 52;
-const EASE_IN_OUT = [0.76, 0, 0.24, 1] as const;
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-/** La imagen entra por franjas de su propio código de barras mientras pasa el escáner. */
-function ScanImage({ src, video, alt, code, className = '' }: { src: string; video?: string; alt: string; code: string; className?: string }) {
-  const strips = useMemo(() => {
-    const elements = encode39(code);
-    const total = elements.reduce((sum, element) => sum + element.width, 0);
-    let start = 0;
-    return elements.map((element) => {
-      const fraction = element.width / total;
-      const strip = { ...element, fraction, position: (start / total / (1 - fraction)) * 100 };
-      start += element.width;
-      return strip;
-    });
-  }, [code]);
-  const middle = strips.length / 2;
+/** La imagen se revela de arriba abajo mientras pasa el escáner: una sola capa animada por la GPU. */
+function ScanImage({ src, video, alt, className = '' }: { src: string; video?: string; alt: string; className?: string }) {
   const lite = isLite();
+  const reveal = lite ? {} : { initial: { clipPath: 'inset(0 0 100% 0)' }, animate: { clipPath: 'inset(0 0 0% 0)' }, transition: { duration: 0.6, ease: EASE_OUT, delay: 0.1 } };
 
   return (
     <div className={`relative overflow-hidden bg-wine-deep ${className}`}>
-      {!lite && <div className="absolute inset-0 flex" aria-hidden="true">
-        {strips.map((strip, i) => (
-          <m.div key={i} initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-            transition={{ duration: 0.42, ease: EASE_IN_OUT, delay: (strip.bar ? 0.08 : 0.32) + (Math.abs(i - middle) / middle) * 0.14 }}
-            className={i % 2 ? 'origin-top' : 'origin-bottom'}
-            style={{ flexGrow: strip.width, flexBasis: 0, marginRight: '-0.5px', backgroundImage: `url(${src})`, backgroundSize: `${100 / strip.fraction}% auto`, backgroundPosition: `${strip.position}% 0%` }} />
-        ))}
-      </div>}
-      {video && !lite && !prefersReducedMotion() ? (
-        <m.video src={video} poster={src} aria-label={alt} autoPlay muted loop playsInline preload="metadata" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12, delay: 0.92 }} className="absolute inset-0 w-full h-full object-cover object-top" />
-      ) : (
-        <m.img src={src} alt={alt} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12, delay: lite ? 0 : 0.92 }} className="absolute inset-0 w-full h-full object-cover object-top" />
-      )}
+      <m.div {...reveal} className="absolute inset-0">
+        {video && !lite && !prefersReducedMotion() ? (
+          <video src={video} poster={src} aria-label={alt} autoPlay muted loop playsInline preload="metadata" className="w-full h-full object-cover object-top" />
+        ) : (
+          <img src={src} alt={alt} decoding="async" className="w-full h-full object-cover object-top" />
+        )}
+      </m.div>
       {!lite && <m.div aria-hidden="true" className="absolute inset-x-0 h-[2px] bg-cream shadow-[0_0_14px_3px_rgba(242,232,213,0.75)]"
-        initial={{ top: '0%', opacity: 1 }} animate={{ top: '100%', opacity: [1, 1, 0] }} transition={{ duration: 0.8, delay: 0.18, ease: 'easeInOut' }} />}
+        initial={{ top: '0%', opacity: 1 }} animate={{ top: '100%', opacity: [1, 1, 0] }} transition={{ duration: 0.6, delay: 0.1, ease: EASE_OUT }} />}
     </div>
   );
 }
@@ -187,12 +168,11 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
         )}
       </AnimatePresence>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <m.div key="panel" initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.65, ease: EASE_IN_OUT }} className="overflow-hidden">
-            <m.div exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+      {open && (
+          <m.div key="panel" initial={{ height: 0 }} animate={{ height: 'auto' }} transition={{ duration: 0.45, ease: EASE_OUT }} className="overflow-hidden">
+            <div>
               <div className="relative">
-                <ScanImage src={item.image} video={item.video} alt={`${ui.capture} ${item.title}`} code={item.sku} className="aspect-[3/2] lg:aspect-[5/2]" />
+                <ScanImage src={item.image} video={item.video} alt={`${ui.capture} ${item.title}`} className="aspect-[16/10] sm:aspect-[2/1] lg:aspect-[3/1] max-h-[55svh] w-full" />
                 <button type="button" onClick={() => setZoomed(true)} aria-label={`${ui.viewFull}: ${item.title}`} className="group/zoom absolute inset-0 cursor-zoom-in">
                   <span className="absolute top-4 left-4 sm:top-7 sm:left-7 z-10 flex items-center gap-2 bg-ink/85 group-hover/zoom:bg-wine border border-cream/50 px-3 py-2 font-mono text-[10px] sm:text-xs font-bold tracking-wider transition-colors">
                     <Maximize2 className="w-3.5 h-3.5" />{ui.viewFull}
@@ -202,14 +182,14 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
                 <m.div className="absolute top-4 right-4 sm:top-7 sm:right-7 pointer-events-none" initial={{ opacity: 0, scale: 2.2, rotate: -16 }} animate={{ opacity: 1, scale: 1, rotate: -6 }} transition={{ duration: 0.24, delay: 1, ease: [0.55, 0, 1, 0.45] }}>
                   <div className="border-[3px] border-cream px-3 py-1.5 font-mono text-[10px] sm:text-xs font-bold tracking-wider stamp-wear">{item.discipline.toUpperCase()}</div>
                 </m.div>
-                <p className="pointer-events-none absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-7 italic text-[clamp(2.3rem,7.2vw,7.5rem)] leading-[0.98] max-w-[85%]"><Words text={item.hook} /></p>
+                <p className="pointer-events-none absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-7 italic text-[clamp(1.9rem,4.8vw,4.6rem)] leading-[0.98] max-w-[80%]"><Words text={item.hook} /></p>
               </div>
 
-              <div className="px-4 sm:px-6 pt-7 pb-9 grid lg:grid-cols-12 gap-x-10 gap-y-7">
+              <div className="px-4 sm:px-6 pt-5 pb-7 grid lg:grid-cols-12 gap-x-10 gap-y-5">
                 <m.div {...rise(0.6)} className="lg:col-span-7">
-                  <p className="text-[clamp(1.45rem,2.1vw,2.1rem)] leading-[1.1] mb-4">{item.description}</p>
+                  <p className="text-[clamp(1.3rem,1.8vw,1.8rem)] leading-[1.1] mb-3">{item.description}</p>
                   {item.built.length > 0 && (
-                    <ul className="text-[1.2rem] sm:text-[1.3rem] leading-[1.14] space-y-1.5 mb-5">
+                    <ul className="text-[1.1rem] sm:text-[1.2rem] leading-[1.14] space-y-1 mb-4">
                       {item.built.map((line) => <li key={line} className="flex gap-2.5"><span className="mt-[0.55em] w-1.5 h-1.5 bg-cream shrink-0" />{line}</li>)}
                     </ul>
                   )}
@@ -223,7 +203,7 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
                     <m.dl {...rise(0.68)} className="flex flex-wrap gap-x-7 gap-y-3">
                       {item.metrics.map(([value, label]) => (
                         <div key={label}>
-                          <dt className="kin text-[clamp(2.6rem,4.4vw,4.2rem)] leading-[0.85]" style={{ '--w': 64 } as React.CSSProperties}>{value}</dt>
+                          <dt className="kin text-[clamp(2.2rem,3.4vw,3.4rem)] leading-[0.85]" style={{ '--w': 64 } as React.CSSProperties}>{value}</dt>
                           <dd className="font-mono text-[10px] mt-1.5">{label.toUpperCase()}</dd>
                         </div>
                       ))}
@@ -248,10 +228,9 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
                   </div>
                 </div>
               </div>
-            </m.div>
+            </div>
           </m.div>
-        )}
-      </AnimatePresence>
+      )}
     </li>
   );
 }
@@ -267,6 +246,26 @@ export function Projects({ data }: { data: GithubData }) {
   const others = data.repos.filter((r) => !r.fork && !r.archived && !featuredNames.has(r.name) && !site.hiddenRepos.includes(r.name));
 
   const [open, setOpen] = useState<string | null>('PosBit');
+  const anchor = useRef<{ id: string; top: number } | null>(null);
+
+  /** Abre o cierra una ficha sin que la fila pulsada se mueva: si se cierra otra más arriba, se compensa el scroll. */
+  const toggle = (item: Item) => {
+    const id = `p-${item.sku.toLowerCase()}`;
+    const row = document.getElementById(id);
+    anchor.current = row ? { id, top: row.getBoundingClientRect().top } : null;
+    setOpen(open === item.title ? null : item.title);
+  };
+
+  useLayoutEffect(() => {
+    const saved = anchor.current;
+    anchor.current = null;
+    const row = saved && document.getElementById(saved.id);
+    if (!saved || !row) return;
+    const shift = row.getBoundingClientRect().top - saved.top;
+    if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: 'instant' });
+    // Si la fila quedó en la mitad de abajo, se sube para que la ficha se vea al abrirse.
+    if (open && saved.top > window.innerHeight * 0.45) window.scrollBy({ top: saved.top - NAV_HEIGHT, behavior: 'smooth' });
+  }, [open]);
 
   // El asistente puede abrir un proyecto: 'open-project' trae su SKU.
   useEffect(() => {
@@ -274,8 +273,7 @@ export function Projects({ data }: { data: GithubData }) {
       const item = site.featured.find((project) => project.sku === (event as CustomEvent<string>).detail);
       if (!item) return;
       setOpen(item.title);
-      // Se desplaza cuando termina de cerrarse la ficha anterior, que cambia la altura de la lista.
-      setTimeout(() => document.getElementById(`p-${item.sku.toLowerCase()}`)?.scrollIntoView({ behavior: 'smooth' }), 700);
+      requestAnimationFrame(() => document.getElementById(`p-${item.sku.toLowerCase()}`)?.scrollIntoView({ behavior: 'smooth' }));
     };
     window.addEventListener('open-project', onOpen);
     return () => window.removeEventListener('open-project', onOpen);
@@ -299,7 +297,7 @@ export function Projects({ data }: { data: GithubData }) {
       </div>
       <ul className="border-b-2 border-cream/30">
         {items.map((item, i) => (
-          <Row key={item.title} item={item} index={i} open={open === item.title} onToggle={() => setOpen(open === item.title ? null : item.title)} />
+          <Row key={item.title} item={item} index={i} open={open === item.title} onToggle={() => toggle(item)} />
         ))}
       </ul>
 

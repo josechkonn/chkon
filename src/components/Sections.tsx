@@ -80,6 +80,7 @@ export function Manifesto() {
   const stage = useRef<HTMLDivElement>(null);
   const word = useRef<HTMLDivElement>(null);
   const solid = useRef<HTMLSpanElement>(null);
+  const outline = useRef<HTMLSpanElement>(null);
   const wash = useRef<HTMLDivElement>(null);
   const laser = useRef<HTMLDivElement>(null);
   const log = useRef<HTMLUListElement>(null);
@@ -96,6 +97,7 @@ export function Manifesto() {
     const x = reveal * full;
     wash.current.style.clipPath = `inset(0 ${(full - x).toFixed(1)}px 0 0)`;
     solid.current.style.clipPath = `inset(-20% ${Math.max(0, width - (x - left)).toFixed(1)}px -20% 0)`;
+    if (outline.current) outline.current.style.clipPath = `inset(-20% -2% -20% ${Math.max(0, x - left).toFixed(1)}px)`;
     laser.current.style.transform = `translateX(${x.toFixed(1)}px)`;
     laser.current.style.opacity = reveal > 0 && reveal < 1 ? '1' : '0';
     log.current.style.opacity = String(clamp01(1 - reveal * 3));
@@ -129,7 +131,7 @@ export function Manifesto() {
 
         <div ref={stage} className="relative z-10 flex-1 flex items-center justify-center min-h-0">
           <div ref={word} className="relative kin leading-[0.8] whitespace-nowrap will-change-transform" style={{ transition: 'none', '--w': MANIFESTO_WIDTH } as React.CSSProperties}>
-            <span aria-hidden="true" className="word-outline">{manifesto.word}</span>
+            <span ref={outline} aria-hidden="true" className="word-outline">{manifesto.word}</span>
             <span ref={solid} className="absolute inset-0" style={{ clipPath: 'inset(-20% 100% -20% 0)' }}>{manifesto.word}</span>
           </div>
         </div>

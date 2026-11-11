@@ -123,7 +123,7 @@ export function Manifesto() {
         <div className="relative z-10 flex items-start justify-between gap-6 pt-6">
           <div className="text-[clamp(2.4rem,6vw,5.5rem)] italic leading-none">{manifesto.first}</div>
           <ul ref={log} aria-hidden="true" className="font-mono text-[10px] sm:text-xs leading-[1.9] text-right">
-            {manifesto.log.map((line, i) => <li key={line} className={i === 0 ? 'text-cream/60' : ''}>{line}</li>)}
+            {manifesto.log.map((line) => <li key={line}>{line}</li>)}
           </ul>
         </div>
 

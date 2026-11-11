@@ -56,7 +56,7 @@ export function LangToggle({ className = '' }: { className?: string }) {
   const next = lang === 'es' ? 'en' : 'es';
   return (
     <button type="button" data-lang-toggle lang={next} onClick={() => choose(next)}
-      aria-label={next === 'en' ? 'Switch to English' : 'Cambiar a español'}
+      aria-label={next === 'en' ? 'EN: switch to English' : 'ES: cambiar a español'}
       className={`min-w-11 self-stretch flex items-center justify-center font-mono text-[11px] font-bold tracking-wider ${className}`}>
       <span className="border border-cream/60 px-1.5 py-1">{next.toUpperCase()}</span>
     </button>

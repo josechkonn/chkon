@@ -5,8 +5,18 @@ import { isLite, prefersReducedMotion } from '@/lib/device';
 import { useGithubRepos } from '@/lib/github';
 import { useSite } from '@/lib/i18n';
 
-const BelowMain = lazy(() => import('@/components/Below').then((module) => ({ default: module.BelowMain })));
-const BelowFooter = lazy(() => import('@/components/Below').then((module) => ({ default: module.BelowFooter })));
+// Si se publica una versión nueva con la página abierta, el fragmento viejo ya no existe: se recarga una sola vez.
+const loadBelow = () =>
+  import('@/components/Below').catch(() => {
+    if (!sessionStorage.getItem('reloaded-after-deploy')) {
+      sessionStorage.setItem('reloaded-after-deploy', '1');
+      location.reload();
+    }
+    return new Promise<never>(() => {});
+  });
+
+const BelowMain = lazy(() => loadBelow().then((module) => ({ default: module.BelowMain })));
+const BelowFooter = lazy(() => loadBelow().then((module) => ({ default: module.BelowFooter })));
 
 export default function App() {
   const [loading, setLoading] = useState(() => !isLite() && !prefersReducedMotion());

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { ArrowDown, ArrowUp, MessageSquare, X } from 'lucide-react';
 import { useLang, useSite } from '@/lib/i18n';
 
@@ -14,6 +15,7 @@ function parse(content: string) {
 
 /** Chat flotante: Jose responde con los datos del portafolio y lleva a la sección que corresponde. */
 export function Assistant() {
+  const reducedMotion = useReducedMotion();
   const site = useSite();
   const { lang } = useLang();
   const t = site.ui.assistant;
@@ -80,17 +82,28 @@ export function Assistant() {
   };
 
   return (
-    <>
-      {!open && (
-        <button type="button" onClick={() => setOpen(true)}
+    <AnimatePresence initial={false} mode="wait">
+      {!open ? (
+        <m.button key="launcher" type="button" onClick={() => setOpen(true)}
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.9 }} transition={{ duration: 0.12 }}
           className="fixed z-[90] right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] sm:right-6 sm:bottom-6 flex items-center gap-2.5 bg-cream text-ink border border-ink px-4 py-3 font-mono text-[11px] font-bold tracking-wider shadow-[4px_4px_0_#0E0A0B] hover:bg-ink hover:text-cream hover:border-cream transition-colors">
           <MessageSquare className="w-4 h-4" aria-hidden="true" />{t.open}
-        </button>
-      )}
-
-      {open && (
-        <section role="dialog" aria-label={t.title}
-          className="assistant-panel fixed z-[90] inset-x-0 bottom-0 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] h-[min(560px,85svh)] flex flex-col bg-ink text-cream border border-cream/30 shadow-[6px_6px_0_#6B0F24]">
+        </m.button>
+      ) : (
+        <m.section key="chat" role="dialog" aria-label={t.title}
+          initial={reducedMotion ? { opacity: 0 } : { opacity: 0, clipPath: 'inset(92% 0% 0% 0%)', scaleX: 0.4, y: 16, rotate: -2 }}
+          animate={reducedMotion ? { opacity: 1 } : {
+            opacity: [0, 1, 1], clipPath: ['inset(92% 0% 0% 0%)', 'inset(92% 0% 0% 0%)', 'inset(-12px -12px -12px -12px)'],
+            scaleX: [0.4, 1, 1], y: [16, 0, 0], rotate: [-2, 0.8, 0],
+          }}
+          exit={reducedMotion ? { opacity: 0 } : {
+            clipPath: ['inset(-12px -12px -12px -12px)', 'inset(92% 0% 0% 0%)', 'inset(92% 0% 0% 0%)'],
+            scaleX: [1, 1, 0.4], y: [0, 0, 16], rotate: [0, -0.8, 2], opacity: [1, 1, 0],
+            transition: { duration: 0.3, times: [0, 0.7, 1], ease: [0.4, 0, 1, 1] },
+          }}
+          transition={{ duration: reducedMotion ? 0.1 : 0.5, times: [0, 0.25, 1], ease: [0.22, 1, 0.36, 1] }}
+          className="origin-bottom-right fixed z-[90] inset-x-0 bottom-0 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] h-[min(560px,85svh)] flex flex-col bg-ink text-cream border border-cream/30 shadow-[6px_6px_0_#6B0F24]">
           <header className="flex items-center justify-between gap-3 bg-wine px-4 py-3 font-mono text-[11px] font-bold tracking-wider">
             <span className="flex items-center gap-3">
               <span className="relative shrink-0">
@@ -150,8 +163,8 @@ export function Assistant() {
             </button>
           </form>
           <p className="px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] font-mono text-[9px] tracking-wide text-cream/60 border-t border-cream/10">{t.note}</p>
-        </section>
+        </m.section>
       )}
-    </>
+    </AnimatePresence>
   );
 }

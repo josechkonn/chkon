@@ -56,12 +56,6 @@ section[id] { scroll-margin-top: 52px; }
 @keyframes bar-out { from { transform: scaleY(1); } to { transform: scaleY(0); } }
 @keyframes laser { from { transform: translateX(0); } to { transform: translateX(100vw); } }
 
-.assistant-panel { transform-origin: bottom right; animation: assistant-open 240ms cubic-bezier(0.22, 1, 0.36, 1); }
-@keyframes assistant-open {
-  from { opacity: 0; transform: translateY(20px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 /* Desgaste de tinta de los sellos. */
 .stamp-wear { -webkit-mask: url('/stamp-wear.webp') 0 0 / 120px; mask: url('/stamp-wear.webp') 0 0 / 120px; }
 .hero-photo { filter: drop-shadow(0 0 14px rgba(14, 10, 11, 0.6)) drop-shadow(0 26px 46px rgba(14, 10, 11, 0.8)); }
@@ -77,5 +71,5 @@ section[id] { scroll-margin-top: 52px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .kin { transition: none; }
-  .animate-pulse, .assistant-panel { animation: none; }
+  .animate-pulse { animation: none; }
 }

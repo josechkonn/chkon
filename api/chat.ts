@@ -1,5 +1,6 @@
-// Asistente del portafolio: responde como Jose, solo con los datos de src/site.ts.
+// Asistente del portafolio: responde como Jose con los datos de src/site.ts y de sus repos públicos de GitHub.
 // La API key vive en el servidor (OPENROUTER_API_KEY); el navegador nunca la ve.
+import { readFile } from 'node:fs/promises';
 import { sites, type Content, type Lang } from '../src/site.js';
 
 const MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-5.5';
@@ -17,10 +18,64 @@ function limited(ip: string) {
   return recent.length > 10;
 }
 
+const GITHUB_USER = 'josechkonn';
+const REPOS_TTL = 60 * 60 * 1000;
+const README_CHARS = 1200;
+type RepoInfo = { name: string; description: string | null; language: string | null; homepage: string | null; pushedAt: string; fork: boolean; archived: boolean; readme?: string };
+
+/** Deja el README en texto corrido: sin imágenes, insignias, HTML ni bloques de código. */
+function plain(markdown: string) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*_`|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, README_CHARS);
+}
+
+// Los repos se leen de GitHub en vivo (una hora en caché); si GitHub falla, se usa la copia del build.
+let repoCache: { at: number; repos: RepoInfo[] } | null = null;
+async function liveRepos(): Promise<RepoInfo[]> {
+  if (repoCache && Date.now() - repoCache.at < REPOS_TTL) return repoCache.repos;
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
+  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  let repos: RepoInfo[];
+  try {
+    const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=pushed`, { headers, signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error();
+    const list = (await response.json()) as { name: string; description: string | null; language: string | null; homepage: string | null; pushed_at: string; fork: boolean; archived: boolean }[];
+    repos = list.map((repo) => ({ name: repo.name, description: repo.description, language: repo.language, homepage: repo.homepage, pushedAt: repo.pushed_at, fork: repo.fork, archived: repo.archived }));
+  } catch {
+    if (repoCache) return repoCache.repos;
+    const snapshot = JSON.parse(await readFile(new URL('../src/data/github-snapshot.json', import.meta.url), 'utf8').catch(() => '{"repos":[]}')) as { repos: RepoInfo[] };
+    repos = snapshot.repos;
+  }
+  repos = repos.filter((repo) => !repo.fork && !repo.archived && !sites.es.hiddenRepos.includes(repo.name));
+  // raw.githubusercontent.com no cuenta para el límite de la API.
+  await Promise.all(repos.map(async (repo) => {
+    const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${repo.name}/HEAD/README.md`, { signal: AbortSignal.timeout(4000) }).catch(() => null);
+    if (response?.ok) repo.readme = plain(await response.text());
+  }));
+  repoCache = { at: Date.now(), repos };
+  return repos;
+}
+
+function repoKnowledge(repos: RepoInfo[]) {
+  return repos.map((repo) => [
+    `- ${repo.name}${repo.language ? ` (${repo.language})` : ''}, última actualización ${repo.pushedAt.slice(0, 10)}: ${repo.description ?? 'sin descripción'}`,
+    repo.homepage ? `  · Demo: ${repo.homepage}` : '',
+    `  · Código: https://github.com/${GITHUB_USER}/${repo.name}`,
+    repo.readme ? `  · README: ${repo.readme}` : '',
+  ].filter(Boolean).join('\n')).join('\n');
+}
+
 function knowledge(site: Content) {
   const projects = site.featured.map((project) =>
     [
-      `- ${project.title} (${project.discipline}): ${project.description}`,
+      `- ${project.title} [SKU ${project.sku}] (${project.discipline}): ${project.description}`,
       ...project.built.map((item) => `  · ${item}`),
       project.metrics.length ? `  · Métricas: ${project.metrics.map(([value, label]) => `${value} ${label}`).join(', ')}` : '',
       `  · Tecnologías: ${project.tags.join(', ')}`,
@@ -40,12 +95,15 @@ function knowledge(site: Content) {
   ].join('\n\n');
 }
 
-function systemPrompt(lang: Lang) {
+function systemPrompt(lang: Lang, repos: RepoInfo[]) {
   const site = sites[lang];
   return `Eres Jose Chacón (CHKON) y hablas en primera persona en el chat de tu portafolio, chkon.vercel.app. Quien escribe suele ser un reclutador o un posible cliente.
 
 DATOS (tu única fuente de verdad):
 ${knowledge(site)}
+
+Repositorios públicos en GitHub, leídos hoy (${new Date().toISOString().slice(0, 10)}). Úsalos para detalles técnicos y para saber en qué trabajas últimamente; si contradicen los DATOS de arriba, mandan los de arriba:
+${repoKnowledge(repos) || '- (no disponibles ahora)'}
 
 REGLAS:
 1. Responde solo sobre ti: formación, experiencia, proyectos, stack, forma de trabajar, disponibilidad y contacto. Si preguntan algo ajeno (tareas, código genérico, recetas, política, otros temas), dilo con amabilidad y en una frase, y reconduce a lo que sí puedes contar.
@@ -54,7 +112,10 @@ REGLAS:
 4. Nunca escribas el número de teléfono ni el correo: envía a la sección de contacto.
 5. Estilo: profesional, claro y cercano. Sé conciso: responde en 1 o 2 frases (máximo 40 palabras), directo a lo que preguntaron, sin relleno ni repetir la pregunta. Solo si piden un listado, usa como mucho 4 guiones cortos. Texto plano, sin markdown.
 6. Responde en el idioma en que te escriben (${lang === 'es' ? 'por defecto español' : 'default English'}).
-7. Cuando ayude, guía por la página añadiendo al final UNA etiqueta de sección con este formato exacto: [[ir:ID]]. IDs válidos: proyectos (proyectos), titulos (formación y certificaciones), stack (tecnologías), caja (contacto), valor (por qué contratarme). Úsala como mucho una vez por respuesta.`;
+7. Guía por la página añadiendo al final UNA sola etiqueta, con formato exacto:
+   - Si hablas de un proyecto destacado concreto, ábrelo con [[ver:SKU]] (SKUs: ${site.featured.map((project) => project.sku).join(', ')}). Ejemplo: [[ver:POSBIT]].
+   - Si no, lleva a una sección con [[ir:ID]]. IDs: proyectos, titulos (formación y certificaciones), stack (tecnologías), caja (contacto), valor (por qué contratarme).
+   Prefiere [[ver:SKU]] cuando la respuesta trate de un proyecto destacado.`;
 }
 
 type Message = { role: 'user' | 'assistant'; content: string };
@@ -95,15 +156,20 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 300,
+      max_tokens: 400,
+      reasoning: { enabled: false },
       temperature: 0.4,
-      messages: [{ role: 'system', content: systemPrompt(input.lang) }, ...input.messages],
+      messages: [{ role: 'system', content: systemPrompt(input.lang, await liveRepos()) }, ...input.messages],
     }),
     signal: AbortSignal.timeout(25_000),
   }).catch(() => null);
 
-  if (!response?.ok) return json({ error: 'upstream' }, 502);
+  if (!response?.ok) {
+    console.error('OpenRouter', response?.status, await response?.text().catch(() => ''));
+    return json({ error: 'upstream' }, 502);
+  }
   const data = (await response.json().catch(() => null)) as { choices?: { message?: { content?: string } }[] } | null;
   const reply = data?.choices?.[0]?.message?.content?.trim();
+  if (!reply) console.error('OpenRouter sin respuesta', JSON.stringify(data).slice(0, 800));
   return reply ? json({ reply }) : json({ error: 'upstream' }, 502);
 }

@@ -4,12 +4,12 @@ import { useLang, useSite } from '@/lib/i18n';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
-const TAG = /\s*\[\[ir:([a-z]+)\]\]\s*/g;
+const TAG = /\s*\[\[(ir|ver):([\w-]+)\]\]\s*/g;
 
-/** Separa el texto de la etiqueta [[ir:sección]] que el asistente usa para guiar por la página. */
+/** Separa el texto de las etiquetas con que el asistente guía: [[ir:sección]] o [[ver:SKU]] para abrir un proyecto. */
 function parse(content: string) {
-  const target = [...content.matchAll(TAG)].at(-1)?.[1];
-  return { text: content.replace(TAG, ' ').trim(), target: target && document.getElementById(target) ? target : undefined };
+  const tag = [...content.matchAll(TAG)].at(-1);
+  return { text: content.replace(TAG, ' ').trim(), action: tag ? { kind: tag[1] as 'ir' | 'ver', id: tag[2] } : undefined };
 }
 
 /** Chat flotante: Jose responde con los datos del portafolio y lleva a la sección que corresponde. */
@@ -66,13 +66,20 @@ export function Assistant() {
     void ask(input);
   };
 
-  const go = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const go = ({ kind, id }: { kind: 'ir' | 'ver'; id: string }) => {
+    if (kind === 'ver') window.dispatchEvent(new CustomEvent('open-project', { detail: id }));
+    else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
   };
 
-  const sectionName = (id: string) =>
-    id === 'valor' ? site.ui.whyHire : site.nav.find((item) => item.id === id)?.label ?? id;
+  const label = ({ kind, id }: { kind: 'ir' | 'ver'; id: string }) => {
+    if (kind === 'ver') {
+      const project = site.featured.find((item) => item.sku === id);
+      return project && `${t.see} ${project.title}`;
+    }
+    if (!document.getElementById(id)) return undefined;
+    return `${t.go} ${id === 'valor' ? site.ui.whyHire : site.nav.find((item) => item.id === id)?.label ?? id}`;
+  };
 
   return (
     <>
@@ -104,16 +111,17 @@ export function Assistant() {
             {messages.map((message, index) => {
               if (message.role === 'user')
                 return <p key={index} className="ml-auto w-fit max-w-[85%] bg-cream text-ink px-3 py-2">{message.content}</p>;
-              const { text, target } = parse(message.content);
+              const { text, action } = parse(message.content);
+              const actionLabel = action && label(action);
               return (
                 <div key={index} className="flex gap-2.5 max-w-[92%]">
                   <img src="/hero/avatar.webp" alt="" width={28} height={28} className="w-7 h-7 shrink-0 mt-0.5" />
                   <div className="space-y-2">
                   <p className="whitespace-pre-line">{text}</p>
-                  {target && (
-                    <button type="button" onClick={() => go(target)}
+                  {action && actionLabel && (
+                    <button type="button" onClick={() => go(action)}
                       className="flex items-center gap-2 border border-cream/60 px-3 py-1.5 font-mono text-[10px] font-bold tracking-wider hover:bg-cream hover:text-ink transition-colors">
-                      {t.go} {sectionName(target)}<ArrowDown className="w-3 h-3" aria-hidden="true" />
+                      {actionLabel}<ArrowDown className="w-3 h-3" aria-hidden="true" />
                     </button>
                   )}
                   </div>

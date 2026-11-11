@@ -154,7 +154,7 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
   };
 
   return (
-    <li ref={rowRef} className={`scroll-mt-[52px] border-t-2 border-cream/30 transition-colors duration-500 ${open ? 'bg-ink text-cream' : 'text-cream hover:bg-ink'}`}>
+    <li ref={rowRef} id={`p-${item.sku.toLowerCase()}`} className={`scroll-mt-[52px] border-t-2 border-cream/30 transition-colors duration-500 ${open ? 'bg-ink text-cream' : 'text-cream hover:bg-ink'}`}>
       <button onClick={onToggle} onPointerEnter={() => setArmed(!isLite())} aria-expanded={open} className={`group relative isolate overflow-hidden w-full text-left px-4 sm:px-6 py-3 lg:py-4 ${GRID}`}>
         {!open && armed && (
           <span className="absolute inset-0 -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">
@@ -261,13 +261,25 @@ export function Projects({ data }: { data: GithubData }) {
   const ui = site.ui.projects;
   const byName = new Map(data.repos.map((r) => [r.name, r]));
   const items: Item[] = site.featured
-    .map((item) => ({ ...item, data: item.repo ? byName.get(item.repo) : undefined }))
-    .filter((item) => !item.repo || item.data);
+    .map((item) => ({ ...item, data: item.repo ? byName.get(item.repo) : undefined }));
 
   const featuredNames = new Set(site.featured.map((f) => f.repo));
   const others = data.repos.filter((r) => !r.fork && !r.archived && !featuredNames.has(r.name) && !site.hiddenRepos.includes(r.name));
 
   const [open, setOpen] = useState<string | null>('PosBit');
+
+  // El asistente puede abrir un proyecto: 'open-project' trae su SKU.
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const item = site.featured.find((project) => project.sku === (event as CustomEvent<string>).detail);
+      if (!item) return;
+      setOpen(item.title);
+      // Se desplaza cuando termina de cerrarse la ficha anterior, que cambia la altura de la lista.
+      setTimeout(() => document.getElementById(`p-${item.sku.toLowerCase()}`)?.scrollIntoView({ behavior: 'smooth' }), 700);
+    };
+    window.addEventListener('open-project', onOpen);
+    return () => window.removeEventListener('open-project', onOpen);
+  }, [site.featured]);
 
   return (
     <section id="proyectos" className="bg-wine text-cream pt-14 pb-20">

@@ -1,6 +1,28 @@
 {
-  "fetchedAt": "2026-11-11T05:40:18.533Z",
+  "fetchedAt": "2026-11-11T14:15:07.518Z",
   "repos": [
+    {
+      "name": "bitalier",
+      "description": null,
+      "url": "https://github.com/josechkonn/bitalier",
+      "homepage": null,
+      "language": "TypeScript",
+      "stars": 0,
+      "pushedAt": "2026-11-11T12:30:09Z",
+      "fork": false,
+      "archived": false
+    },
+    {
+      "name": "APFSCleaner",
+      "description": "macOS tool for cleaning APFS snapshots and disk clutter",
+      "url": "https://github.com/josechkonn/APFSCleaner",
+      "homepage": null,
+      "language": "Swift",
+      "stars": 0,
+      "pushedAt": "2026-11-11T12:30:01Z",
+      "fork": false,
+      "archived": false
+    },
     {
       "name": "josechkonn",
       "description": "✨ Mi perfil de GitHub",
@@ -9,17 +31,6 @@
       "language": null,
       "stars": 0,
       "pushedAt": "2026-11-11T04:56:27Z",
-      "fork": false,
-      "archived": false
-    },
-    {
-      "name": "PosBit",
-      "description": null,
-      "url": "https://github.com/josechkonn/PosBit",
-      "homepage": "https://pos-bit-pi.vercel.app",
-      "language": "TypeScript",
-      "stars": 0,
-      "pushedAt": "2026-11-03T01:27:30Z",
       "fork": false,
       "archived": false
     },
@@ -68,17 +79,6 @@
       "archived": false
     },
     {
-      "name": "APFSCleaner",
-      "description": "macOS tool for cleaning APFS snapshots and disk clutter",
-      "url": "https://github.com/josechkonn/APFSCleaner",
-      "homepage": null,
-      "language": "Swift",
-      "stars": 0,
-      "pushedAt": "2026-11-01T16:24:00Z",
-      "fork": false,
-      "archived": false
-    },
-    {
       "name": "lanuevaesperanza",
       "description": "EPSDC La Nueva Esperanza - Plataforma de Soberanía Agroalimentaria y Red Comunal en La Grita, Táchira",
       "url": "https://github.com/josechkonn/lanuevaesperanza",
@@ -86,17 +86,6 @@
       "language": "PHP",
       "stars": 0,
       "pushedAt": "2026-10-31T22:30:29Z",
-      "fork": false,
-      "archived": false
-    },
-    {
-      "name": "bitalier",
-      "description": null,
-      "url": "https://github.com/josechkonn/bitalier",
-      "homepage": null,
-      "language": "TypeScript",
-      "stars": 0,
-      "pushedAt": "2026-10-19T22:03:58Z",
       "fork": false,
       "archived": false
     },

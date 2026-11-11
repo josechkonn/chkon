@@ -86,6 +86,7 @@ const es = {
     stack: { title: 'STACK TÉCNICO', usedIn: 'USADO EN', workStack: 'PARTE DE MI STACK DE TRABAJO', show: 'Ver' },
     contact: { title: 'PASE POR CAJA', text: '¿Hay algo real por construir? Escríbeme y lo hacemos funcionar.' },
     whatsappMessage: 'Hola Jose, vi tu portafolio y me gustaría hablar contigo.',
+    assistant: { open: 'PREGÚNTAME', title: 'JOSE CHACÓN', status: 'Asistente del portafolio', close: 'Cerrar chat', placeholder: 'Escribe tu pregunta…', send: 'Enviar', hello: 'Hola, soy Jose Chacón, desarrollador full-stack con IA. Puedo contarte sobre mi formación, mis proyectos o cómo puedo aportar a tu equipo.', thinking: 'Pasando por caja…', error: 'No pude responder ahora. Prueba de nuevo o escríbeme por contacto.', go: 'Ir a', note: 'Respuestas con IA a partir de este portafolio.', suggestions: ['¿Dónde estudiaste?', '¿Qué sabes hacer?', 'Muéstrame un proyecto', '¿Cómo te contacto?'] },
     meta: { title: 'CHKON — Jose Chacón', description: 'Portafolio de Jose Chacón: T.S.U. en Informática (UPTAIET), AWS Certified Cloud Practitioner. Sistemas completos con agentes de IA, apps nativas y web.' },
   },
   // Cada tecnología es una barra: cuantos más proyectos la usan, más gruesa.
@@ -167,6 +168,7 @@ const en: Content = {
     stack: { title: 'TECH STACK', usedIn: 'USED IN', workStack: 'PART OF MY WORKING STACK', show: 'Show' },
     contact: { title: 'COME TO CHECKOUT', text: 'Got something real to build? Write to me and we will make it work.' },
     whatsappMessage: 'Hi Jose, I saw your portfolio and would like to talk.',
+    assistant: { open: 'ASK ME', title: 'JOSE CHACÓN', status: 'Portfolio assistant', close: 'Close chat', placeholder: 'Type your question…', send: 'Send', hello: 'Hi, I am Jose Chacón, a full-stack developer working with AI. I can tell you about my background, my projects or how I can help your team.', thinking: 'Ringing it up…', error: 'I could not answer right now. Try again or reach me through contact.', go: 'Go to', note: 'AI answers based on this portfolio.', suggestions: ['Where did you study?', 'What can you do?', 'Show me a project', 'How do I reach you?'] },
     meta: { title: 'CHKON — Jose Chacón', description: 'Portfolio of Jose Chacón: Computer Science technician (UPTAIET), AWS Certified Cloud Practitioner. Complete systems built with AI agents, native apps and web.' },
   },
   stack: es.stack.map((tech) => ({

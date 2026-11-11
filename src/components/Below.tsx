@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { LazyMotion, MotionConfig, domAnimation } from 'framer-motion';
 import { Contact, Credentials, Manifesto, StackWall, Stripes, Value } from '@/components/Sections';
 import { Projects } from '@/components/Projects';
+import { Assistant } from '@/components/Assistant';
 import type { GithubData } from '@/lib/github';
 
 const Motion = ({ children }: { children: ReactNode }) => (
@@ -31,6 +32,7 @@ export function BelowFooter() {
   return (
     <Motion>
       <Contact />
+      <Assistant />
     </Motion>
   );
 }

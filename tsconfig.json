@@ -13,5 +13,5 @@
     "types": ["vite/client", "node"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "vite.config.ts", "vercel.json"]
+  "include": ["src", "api", "vite.config.ts", "vercel.json"]
 }

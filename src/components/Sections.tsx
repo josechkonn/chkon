@@ -8,7 +8,7 @@ import { encode39 } from '@/lib/barcode';
 import { isLite } from '@/lib/device';
 import { FitLine, measureEm, useFontFit } from '@/lib/kinetic';
 import { TECH_ICONS } from '@/lib/tech-icons';
-import { LangSwitch, useSite } from '@/lib/i18n';
+import { useSite } from '@/lib/i18n';
 import type { Content } from '@/site';
 
 /** Para quien decide contratar: el mensaje y la evidencia, nada más. */
@@ -280,7 +280,7 @@ function LiveBarcode() {
   const onLeave = () => bars.current.forEach((bar) => { if (bar) bar.style.transform = 'scaleY(1)'; });
 
   return (
-    <div className="flex h-[26vw] min-h-[130px] max-h-[360px]" onPointerMove={onMove} onPointerLeave={onLeave} aria-hidden="true">
+    <div className="flex h-[24vw] min-h-[92px] max-h-[360px]" onPointerMove={onMove} onPointerLeave={onLeave} aria-hidden="true">
       {elements.map((element, i) => (
         <div key={i} ref={(el) => { bars.current[i] = el; }} className={`origin-bottom transition-transform duration-200 ease-out ${element.bar ? 'bg-cream' : ''}`} style={{ flexGrow: element.width, flexBasis: 0 }} />
       ))}
@@ -310,13 +310,12 @@ export function Contact() {
           </div>
         </div>
       </section>
-      <div className="bg-ink px-6 sm:px-10 pt-10 pb-5">
+      <div className="bg-ink px-4 sm:px-10 pt-8 sm:pt-10 pb-5">
         <LiveBarcode />
         <div className="font-mono text-[10px] sm:text-xs tracking-[0.5em] text-center text-cream mt-3">{site.identity.code}</div>
       </div>
-      <div className="bg-ink text-cream px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center gap-1 justify-between font-mono text-[10px] tracking-wider">
+      <div className="bg-ink text-cream/80 border-t border-cream/15 px-4 sm:px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-4 font-mono text-[10px] tracking-wide sm:tracking-wider whitespace-nowrap">
         <span>© {year} {site.brand.fullName.toUpperCase()}</span>
-        <LangSwitch />
         <span>{site.brand.location.toUpperCase()}</span>
       </div>
     </footer>

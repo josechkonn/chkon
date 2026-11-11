@@ -23,7 +23,6 @@ export function Assistant() {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const log = useRef<HTMLDivElement>(null);
-  const field = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     log.current?.scrollTo({ top: log.current.scrollHeight, behavior: 'smooth' });
@@ -31,7 +30,6 @@ export function Assistant() {
 
   useEffect(() => {
     if (!open) return;
-    field.current?.focus();
     const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -92,7 +90,7 @@ export function Assistant() {
 
       {open && (
         <section role="dialog" aria-label={t.title}
-          className="fixed z-[90] inset-x-0 bottom-0 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] h-[min(560px,85svh)] flex flex-col bg-ink text-cream border border-cream/30 shadow-[6px_6px_0_#6B0F24]">
+          className="assistant-panel fixed z-[90] inset-x-0 bottom-0 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] h-[min(560px,85svh)] flex flex-col bg-ink text-cream border border-cream/30 shadow-[6px_6px_0_#6B0F24]">
           <header className="flex items-center justify-between gap-3 bg-wine px-4 py-3 font-mono text-[11px] font-bold tracking-wider">
             <span className="flex items-center gap-3">
               <span className="relative shrink-0">
@@ -143,7 +141,7 @@ export function Assistant() {
           </div>
 
           <form onSubmit={submit} className="flex border-t border-cream/20">
-            <input ref={field} value={input} onChange={(event) => setInput(event.target.value)} maxLength={600}
+            <input value={input} onChange={(event) => setInput(event.target.value)} maxLength={600}
               placeholder={t.placeholder} aria-label={t.placeholder}
               className="flex-1 min-w-0 bg-transparent px-4 py-3.5 font-sans text-base sm:text-[15px] text-cream placeholder:text-cream/60 outline-none" />
             <button type="submit" disabled={busy || !input.trim()} aria-label={t.send}

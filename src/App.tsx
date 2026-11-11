@@ -38,11 +38,11 @@ export default function App() {
       <main id="contenido">
         <Hero repoCount={github.repos.length} />
         <Suspense fallback={null}>
-          <BelowMain github={github} onReady={markReady} />
+          {!loading && <BelowMain github={github} onReady={markReady} />}
         </Suspense>
       </main>
       <Suspense fallback={null}>
-        <BelowFooter />
+        {!loading && <BelowFooter />}
       </Suspense>
     </>
   );

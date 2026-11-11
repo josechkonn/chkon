@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { m, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
+import { MailLink } from '@/components/MailLink';
 import { GithubIcon } from '@/components/Icons';
 import { encode39 } from '@/lib/barcode';
 import { isLite } from '@/lib/device';
@@ -297,10 +298,10 @@ export function Contact() {
         <div className="mt-8 grid lg:grid-cols-2 gap-8 items-end">
           <p className="text-[clamp(1.75rem,4vw,3.75rem)] leading-[1.02] italic">{site.ui.contact.text}</p>
           <div className="grid sm:grid-cols-2 gap-2 font-mono text-xs font-bold tracking-wider">
-            <a href={`mailto:${site.links.email}`} className="group flex items-center justify-between bg-ink text-cream hover:bg-wine-deep px-5 py-5 transition-colors">
+            <MailLink className="group flex items-center justify-between bg-ink text-cream hover:bg-wine-deep px-5 py-5 transition-colors">
               {site.ui.write}<ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </a>
-            <a href={site.links.github} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-cream hover:bg-ink px-5 py-5 transition-colors">
+            </MailLink>
+            <a href={site.links.github} target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between border border-cream hover:bg-ink px-5 py-5 transition-colors">
               <span className="flex items-center gap-2.5"><GithubIcon className="w-4 h-4" />GITHUB</span><ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </a>
           </div>

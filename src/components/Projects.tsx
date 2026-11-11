@@ -188,10 +188,10 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
                     <m.div {...rise(0.76)} className="flex flex-wrap gap-2">
                       {item.data ? (
                         <>
-                          <a href={item.data.url} target="_blank" rel="noreferrer" className={`${button} bg-wine text-cream hover:bg-wine-deep`}>
+                          <a href={item.data.url} target="_blank" rel="noopener noreferrer" className={`${button} bg-wine text-cream hover:bg-wine-deep`}>
                             <GithubIcon className="w-4 h-4" />{ui.code}<ArrowUpRight className="w-4 h-4" />
                           </a>
-                          {demo && <a href={demo} target="_blank" rel="noreferrer" className={`${button} border border-cream hover:bg-wine`}>DEMO<ArrowUpRight className="w-4 h-4" /></a>}
+                          {demo && <a href={demo} target="_blank" rel="noopener noreferrer" className={`${button} border border-cream hover:bg-wine`}>DEMO<ArrowUpRight className="w-4 h-4" /></a>}
                         </>
                       ) : (
                         <span className={`${button} border border-cream/50`}><Lock className="w-3.5 h-3.5" />{ui.privateRepo}</span>
@@ -230,7 +230,7 @@ export function Projects({ data }: { data: GithubData }) {
         <h2><FitLine text={ui.title} base={84} peak={26} /></h2>
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 mt-5 mb-10">
           <p className="text-[clamp(1.5rem,3vw,2.75rem)] italic leading-tight">{ui.intro}</p>
-          <a href={site.links.github} target="_blank" rel="noreferrer" className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] hover:underline underline-offset-4">
+          <a href={site.links.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] hover:underline underline-offset-4">
             <span className={`w-2 h-2 ${data.live ? 'bg-cream animate-pulse' : 'bg-cream/40'}`} />
             {data.live ? ui.synced : ui.copy} · {timeAgo(data.fetchedAt, lang).toUpperCase()}
           </a>
@@ -254,7 +254,7 @@ export function Projects({ data }: { data: GithubData }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10 border-t border-cream/30">
             {others.map((repo) => (
-              <a key={repo.name} href={repo.url} target="_blank" rel="noreferrer" className="group flex items-baseline justify-between gap-4 border-b border-cream/30 py-3 hover:bg-ink transition-colors">
+              <a key={repo.name} href={repo.url} target="_blank" rel="noopener noreferrer" className="group flex items-baseline justify-between gap-4 border-b border-cream/30 py-3 hover:bg-ink transition-colors">
                 <span className="min-w-0">
                   <span className="kin block uppercase text-2xl leading-none truncate [--w:64] group-hover:[--w:88]">{repo.name}</span>
                   <span className="block text-lg leading-tight mt-1 truncate">{repo.description ?? ui.noDescription}</span>

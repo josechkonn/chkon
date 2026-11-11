@@ -12,7 +12,7 @@ try {
   const res = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100&sort=pushed`, { headers });
   if (!res.ok) throw new Error(`GitHub respondió ${res.status}`);
 
-  const repos = (await res.json()).filter((r) => !r.private).map((r) => ({
+  const repos = (await res.json()).filter((r) => !r.private && r.html_url === `https://github.com/${USER}/${r.name}`).map((r) => ({
     name: r.name,
     description: r.description,
     url: r.html_url,

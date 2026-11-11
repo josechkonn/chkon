@@ -18,13 +18,6 @@
     <link rel="preload" href="/fonts/anybody.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/hero/jose.webp" as="image" type="image/webp" fetchpriority="high" />
-    <script>
-      // Equipos muy limitados: se quitan los efectos caros antes del primer pintado.
-      (function () {
-        var cores = navigator.hardwareConcurrency || 8, memory = navigator.deviceMemory || 8;
-        if (cores <= 2 || memory <= 2 || (cores <= 4 && memory <= 4)) document.documentElement.classList.add('lite');
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -5,7 +5,7 @@ const es = {
     code: 'CHKON',
   },
   brand: { first: 'Jose', last: 'Chacón', fullName: 'Jose Chacón', location: 'Táchira, Venezuela' },
-  links: { github: 'https://github.com/josechkonn', email: 'jose.a.chacon.g.2005@gmail.com' },
+  links: { github: 'https://github.com/josechkonn' },
   nav: [
     { label: 'PROYECTOS', id: 'proyectos' },
     { label: 'TÍTULOS', id: 'titulos' },

@@ -18,10 +18,30 @@ type ApiRepo = {
 
 const fromSnapshot = (): GithubData => ({ repos: snapshot.repos, fetchedAt: snapshot.fetchedAt, live: false });
 
+const MAX_REPOS = 100;
+const isOptionalText = (value: unknown) => value === null || (typeof value === 'string' && value.length <= 500);
+
+/** Todo lo que llega de la red o de localStorage se valida antes de llegar a la página. */
+function isRepo(value: unknown): value is Repo {
+  const r = value as Repo;
+  return (
+    typeof r === 'object' && r !== null &&
+    typeof r.name === 'string' && /^[\w.-]{1,100}$/.test(r.name) &&
+    r.url === `https://github.com/${GITHUB_USER}/${r.name}` &&
+    isOptionalText(r.description) && isOptionalText(r.homepage) && isOptionalText(r.language) &&
+    Number.isSafeInteger(r.stars) && r.stars >= 0 &&
+    typeof r.pushedAt === 'string' && !Number.isNaN(Date.parse(r.pushedAt)) &&
+    typeof r.fork === 'boolean' && typeof r.archived === 'boolean'
+  );
+}
+
 function readCache(): GithubData | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
-    return raw ? (JSON.parse(raw) as GithubData) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GithubData;
+    const valid = Array.isArray(parsed.repos) && parsed.repos.every(isRepo) && !Number.isNaN(Date.parse(parsed.fetchedAt));
+    return valid ? { repos: parsed.repos.slice(0, MAX_REPOS), fetchedAt: parsed.fetchedAt, live: parsed.live === true } : null;
   } catch {
     return null;
   }
@@ -30,6 +50,9 @@ function readCache(): GithubData | null {
 async function fetchRepos(signal: AbortSignal): Promise<GithubData> {
   const res = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=pushed`, {
     signal,
+    credentials: 'omit',
+    referrerPolicy: 'no-referrer',
+    redirect: 'error',
     headers: { Accept: 'application/vnd.github+json' },
   });
   if (!res.ok) throw new Error(`GitHub ${res.status}`);
@@ -40,7 +63,7 @@ async function fetchRepos(signal: AbortSignal): Promise<GithubData> {
     repos: list.map((r) => ({
       name: r.name, description: r.description, url: r.html_url, homepage: r.homepage, language: r.language,
       stars: r.stargazers_count, pushedAt: r.pushed_at, fork: r.fork, archived: r.archived,
-    })),
+    })).filter(isRepo).slice(0, MAX_REPOS),
   };
 }
 
@@ -84,5 +107,13 @@ export function timeAgo(iso: string, lang: 'es' | 'en' = 'es'): string {
   return lang === 'es' ? 'ahora mismo' : 'just now';
 }
 
-/** Solo enlaces http(s): `homepage` es texto libre en GitHub. */
-export const safeUrl = (url: string | null | undefined) => (url && /^https?:\/\//i.test(url) ? url : null);
+/** `homepage` es texto libre en GitHub: solo se enlaza si es https. */
+export function safeUrl(url: string | null | undefined) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}

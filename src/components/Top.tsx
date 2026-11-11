@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
+import { MailLink } from '@/components/MailLink';
 import { FitLine, useFontFit } from '@/lib/kinetic';
 import { caracasDateTime } from '@/lib/time';
 import { LangSwitch, useSite } from '@/lib/i18n';
@@ -99,9 +100,9 @@ export function Register({ repoCount, sectionsReady }: { repoCount: number; sect
             <span><span className="text-cream/70 mr-1.5">REPOS</span>{repoCount}</span>
             <span><span className="text-cream/70 mr-1.5">TÁCHIRA</span>{time}</span>
           </div>
-          <a href={`mailto:${site.links.email}`} className="group flex items-center gap-2 bg-wine hover:bg-wine-deep px-5 text-[11px] font-bold tracking-wider transition-colors">
+          <MailLink className="group flex items-center gap-2 bg-wine hover:bg-wine-deep px-5 text-[11px] font-bold tracking-wider transition-colors">
             {site.ui.write}<ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
+          </MailLink>
         </div>
       </div>
 

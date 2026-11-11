@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6B0F24" />
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <title>CHKON — Jose Chacón</title>
+    <meta name="description" content="Portafolio de Jose Chacón: T.S.U. en Informática (UPTAIET), AWS Certified Cloud Practitioner. Apps nativas para macOS y Android, y sistemas web." />
+    <meta name="author" content="Jose Chacón" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CHKON — Jose Chacón" />
+    <meta property="og:description" content="Full-stack + IA. Sistemas de gestión, IA en productos y apps nativas." />
+    <link rel="preload" href="/fonts/anybody.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/hero/jose.webp" as="image" type="image/webp" fetchpriority="high" />
+    <script>
+      // Equipos muy limitados: se quitan los efectos caros antes del primer pintado.
+      (function () {
+        var cores = navigator.hardwareConcurrency || 8, memory = navigator.deviceMemory || 8;
+        if (cores <= 2 || memory <= 2 || (cores <= 4 && memory <= 4)) document.documentElement.classList.add('lite');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

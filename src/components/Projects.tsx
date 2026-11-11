@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AnimatePresence, m } from 'framer-motion';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, Lock, Maximize2, Plus, X } from 'lucide-react';
 import { Barcode } from '@/components/Barcode';
 import { GithubIcon } from '@/components/Icons';
@@ -106,6 +106,7 @@ function glideTo(target: number) {
 
 function Row({ item, index, open, onToggle }: { item: Item; index: number; open: boolean; onToggle: () => void }) {
   const { lang, site } = useLang();
+  const reducedMotion = useReducedMotion();
   const ui = site.ui.projects;
   const demo = safeUrl(item.data?.homepage);
   const button = 'inline-flex items-center gap-2.5 px-5 py-4 font-mono text-xs font-bold tracking-wider transition-colors';
@@ -168,8 +169,10 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
         )}
       </AnimatePresence>
 
-      {open && (
-          <m.div key="panel" initial={{ height: 0 }} animate={{ height: 'auto' }} transition={{ duration: 0.45, ease: EASE_OUT }} className="overflow-hidden">
+      <AnimatePresence>
+        {open && (
+          <m.div key="panel" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }} transition={{ duration: reducedMotion ? 0 : 0.45, ease: EASE_OUT }} className="overflow-hidden">
             <div>
               <div className="relative">
                 <ScanImage src={item.image} video={item.video} alt={`${ui.capture} ${item.title}`} className="aspect-[16/10] sm:aspect-[2/1] lg:aspect-[3/1] max-h-[55svh] w-full" />
@@ -230,7 +233,8 @@ function Row({ item, index, open, onToggle }: { item: Item; index: number; open:
               </div>
             </div>
           </m.div>
-      )}
+        )}
+      </AnimatePresence>
     </li>
   );
 }
@@ -265,6 +269,20 @@ export function Projects({ data }: { data: GithubData }) {
     if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: 'instant' });
     // Si la fila quedó en la mitad de abajo, se sube para que la ficha se vea al abrirse.
     if (open && saved.top > window.innerHeight * 0.45) window.scrollBy({ top: saved.top - NAV_HEIGHT, behavior: 'smooth' });
+
+    // La ficha anterior ahora se encoge durante 450 ms: conserva la posición de la fila elegida.
+    let previousTop = row.getBoundingClientRect().top + window.scrollY;
+    const until = performance.now() + 500;
+    let frame = 0;
+    const follow = () => {
+      const top = row.getBoundingClientRect().top + window.scrollY;
+      const delta = top - previousTop;
+      if (Math.abs(delta) > 0.1) window.scrollBy({ top: delta, behavior: 'instant' });
+      previousTop = top;
+      if (performance.now() < until) frame = requestAnimationFrame(follow);
+    };
+    frame = requestAnimationFrame(follow);
+    return () => cancelAnimationFrame(frame);
   }, [open]);
 
   // El asistente puede abrir un proyecto: 'open-project' trae su SKU.
@@ -295,7 +313,7 @@ export function Projects({ data }: { data: GithubData }) {
       <div className={`hidden lg:grid px-6 pb-2 font-mono text-[10px] tracking-wider ${GRID}`}>
         {ui.head.map((label) => <span key={label}>{label}</span>)}<span />
       </div>
-      <ul className="border-b-2 border-cream/30">
+      <ul className="border-b-2 border-cream/30 [overflow-anchor:none]">
         {items.map((item, i) => (
           <Row key={item.title} item={item} index={i} open={open === item.title} onToggle={() => toggle(item)} />
         ))}

@@ -19,7 +19,6 @@ export function BelowMain({ github, onReady }: { github: GithubData; onReady: ()
       <Projects data={github} />
       <Stripes from="wine" to="ink" />
       <Manifesto />
-      <Stripes from="ink" to="wine" />
       <Credentials />
       <Stripes from="wine" to="ink" />
       <StackWall />

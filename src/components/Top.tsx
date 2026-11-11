@@ -135,9 +135,12 @@ export function Hero({ repoCount }: { repoCount: number }) {
         <FitLine text={site.identity.name} base={60} peak={22} fillHeight={window.innerWidth < 1024 ? 0.4 : 0.58} />
       </div>
 
-      <img
-        src="/hero/jose.webp" alt={site.brand.fullName} width={653} height={985} fetchPriority="high" draggable={false}
-        className="hero-photo pointer-events-none select-none relative z-10 mx-auto -mt-[27svh] lg:mt-0 h-[66svh] w-auto max-w-none [mask-image:linear-gradient(to_bottom,#000_72%,transparent)] lg:[mask-image:none] lg:absolute lg:bottom-0 lg:inset-x-0 lg:h-[92svh]" />
+      {/* La máscara va en un contenedor más amplio que la foto: así no recorta la sombra en un rectángulo. */}
+      <div className="pointer-events-none relative z-10 flex justify-center pt-20 -mt-[calc(27svh+5rem)] [mask-image:linear-gradient(to_bottom,#000_78%,transparent)] lg:contents">
+        <img
+          src="/hero/jose.webp" alt={site.brand.fullName} width={653} height={985} fetchPriority="high" draggable={false}
+          className="hero-photo select-none h-[66svh] w-auto max-w-none lg:absolute lg:z-10 lg:bottom-0 lg:inset-x-0 lg:mx-auto lg:h-[92svh]" />
+      </div>
 
       <div className="hero-floor absolute inset-x-0 bottom-0 h-[18%] z-[15] pointer-events-none" aria-hidden="true" />
 

@@ -60,6 +60,9 @@ section[id] { scroll-margin-top: 52px; }
 .stamp-wear { -webkit-mask: url('/stamp-wear.webp') 0 0 / 120px; mask: url('/stamp-wear.webp') 0 0 / 120px; }
 .hero-photo { filter: drop-shadow(0 0 14px rgba(14, 10, 11, 0.6)) drop-shadow(0 26px 46px rgba(14, 10, 11, 0.8)); }
 
+/* Boceto de la palabra antes de que pase el láser. */
+.word-outline { color: transparent; -webkit-text-stroke: 1.5px rgba(242, 232, 213, 0.6); }
+
 /* Modo para equipos muy limitados. */
 .lite .kin { transition: none !important; }
 .lite .hero-photo { filter: none; }

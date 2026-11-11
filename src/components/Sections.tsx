@@ -71,28 +71,44 @@ export function Stripes({ from, to }: { from: StripeColor; to: StripeColor }) {
 }
 
 const MANIFESTO_WIDTH = 60;
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** La palabra llena el ancho y crece en alto al bajar: solo transform, lo hace la GPU. */
+/** La frase se cuenta sola: primero un boceto con datos de build; el láser lo deja impecable. Solo transform y clip. */
 export function Manifesto() {
   const section = useRef<HTMLElement>(null);
+  const sticky = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const word = useRef<HTMLDivElement>(null);
-  const tallest = useRef(1.4);
+  const solid = useRef<HTMLSpanElement>(null);
+  const wash = useRef<HTMLDivElement>(null);
+  const laser = useRef<HTMLDivElement>(null);
+  const log = useRef<HTMLUListElement>(null);
+  const box = useRef({ tallest: 1.4, left: 0, width: 0, full: 0 });
   const { scrollYProgress } = useScroll({ target: section, offset: ['start start', 'end end'] });
-  const closing = useTransform(scrollYProgress, [0.55, 0.85], [0, 1]);
+  const closing = useTransform(scrollYProgress, [0.72, 0.92], [0, 1]);
   const { manifesto } = useSite().ui;
 
   const paint = (p: number) => {
-    if (!word.current) return;
-    const eased = Math.min(1, Math.max(0, p));
-    word.current.style.transform = `scaleY(${(0.42 + (tallest.current - 0.42) * eased).toFixed(3)})`;
+    const { tallest, left, width, full } = box.current;
+    if (!word.current || !solid.current || !wash.current || !laser.current || !log.current) return;
+    word.current.style.transform = `scaleY(${(0.5 + (tallest - 0.5) * clamp01(p / 0.3)).toFixed(3)})`;
+    const reveal = isLite() ? 1 : clamp01((p - 0.32) / 0.42);
+    const x = reveal * full;
+    wash.current.style.clipPath = `inset(0 ${(full - x).toFixed(1)}px 0 0)`;
+    solid.current.style.clipPath = `inset(-20% ${Math.max(0, width - (x - left)).toFixed(1)}px -20% 0)`;
+    laser.current.style.transform = `translateX(${x.toFixed(1)}px)`;
+    laser.current.style.opacity = reveal > 0 && reveal < 1 ? '1' : '0';
+    log.current.style.opacity = String(clamp01(1 - reveal * 3));
   };
 
   const fit = () => {
-    if (!stage.current || !word.current) return;
-    const size = (stage.current.clientWidth - 8) / measureEm(manifesto.word, MANIFESTO_WIDTH);
+    if (!stage.current || !word.current || !sticky.current) return;
+    const em = measureEm(manifesto.word, MANIFESTO_WIDTH);
+    const size = (stage.current.clientWidth - 8) / em;
     word.current.style.fontSize = `${size}px`;
-    tallest.current = Math.max(0.9, Math.min(1.6, (stage.current.clientHeight * 0.92) / (size * 0.8)));
+    const full = sticky.current.clientWidth;
+    const width = size * em;
+    box.current = { tallest: Math.max(0.9, Math.min(full < 768 ? 3.2 : 1.6, (stage.current.clientHeight * 0.92) / (size * 0.8))), left: (full - width) / 2, width, full };
     paint(scrollYProgress.get());
   };
   useFontFit(stage, fit);
@@ -101,12 +117,26 @@ export function Manifesto() {
 
   return (
     <section ref={section} className="relative h-[260vh] bg-ink text-cream">
-      <div className="sticky top-0 h-[100svh] pt-[52px] flex flex-col px-4 sm:px-6 overflow-hidden">
-        <div className="pt-6 text-[clamp(2.4rem,6vw,5.5rem)] italic leading-none">{manifesto.first}</div>
-        <div ref={stage} className="flex-1 flex items-center justify-center min-h-0">
-          <div ref={word} className="kin leading-[0.8] whitespace-nowrap will-change-transform" style={{ transition: 'none', '--w': MANIFESTO_WIDTH } as React.CSSProperties}>{manifesto.word}</div>
+      <div ref={sticky} className="sticky top-0 h-[100svh] pt-[52px] flex flex-col px-4 sm:px-6 overflow-hidden">
+        <div ref={wash} aria-hidden="true" className="absolute inset-0 bg-wine" style={{ clipPath: 'inset(0 100% 0 0)' }} />
+
+        <div className="relative z-10 flex items-start justify-between gap-6 pt-6">
+          <div className="text-[clamp(2.4rem,6vw,5.5rem)] italic leading-none">{manifesto.first}</div>
+          <ul ref={log} aria-hidden="true" className="font-mono text-[10px] sm:text-xs leading-[1.9] text-right">
+            {manifesto.log.map((line, i) => <li key={line} className={i === 0 ? 'text-cream/60' : ''}>{line}</li>)}
+          </ul>
         </div>
-        <m.div style={{ opacity: closing }} className="pb-6 text-right text-[clamp(2.4rem,6vw,5.5rem)] italic leading-none">{manifesto.last}</m.div>
+
+        <div ref={stage} className="relative z-10 flex-1 flex items-center justify-center min-h-0">
+          <div ref={word} className="relative kin leading-[0.8] whitespace-nowrap will-change-transform" style={{ transition: 'none', '--w': MANIFESTO_WIDTH } as React.CSSProperties}>
+            <span aria-hidden="true" className="word-outline">{manifesto.word}</span>
+            <span ref={solid} className="absolute inset-0" style={{ clipPath: 'inset(-20% 100% -20% 0)' }}>{manifesto.word}</span>
+          </div>
+        </div>
+
+        <m.div style={{ opacity: closing }} className="relative z-10 pb-6 text-right text-[clamp(2.4rem,6vw,5.5rem)] italic leading-none">{manifesto.last}</m.div>
+
+        <div ref={laser} aria-hidden="true" className="absolute inset-y-0 left-0 z-20 w-[3px] bg-cream shadow-[0_0_28px_10px_rgba(184,35,63,0.9)] opacity-0 will-change-transform" />
       </div>
     </section>
   );
